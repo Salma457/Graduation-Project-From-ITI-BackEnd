@@ -63,7 +63,7 @@ class JobApplicationController extends Controller
                 ], 422);
             }
 
-            // التحقق من صحة الملف
+            // التحقق من صحة البيانات
             $validator = Validator::make($request->all(), [
                 'job_id' => 'required|exists:jobs,id',
                 'cover_letter' => 'required|string',
@@ -77,28 +77,54 @@ class JobApplicationController extends Controller
                 ], 422);
             }
 
-            // البحث عن ملف تعريف ITIAN
+            // البحث عن بروفايل ITIAN
             $itianProfile = ItianProfile::where('user_id', Auth::id())->first();
 
             if (!$itianProfile) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You need an ITIAN profile to apply for jobs.'
-                ], 403);
-            }
+            \Log::error('Itian profile not found for user ID: ' . Auth::id());
+            return response()->json([
+                'success' => false,
+                'message' => 'You need an ITIAN profile to apply for jobs.'
+            ], 403);
+        }
+
 
             // تخزين الملف
             $storedPath = $request->file('cv')->store('job_applications', 'public');
 
-            // إنشاء طلب الوظيفة
-            $jobApplication = JobApplication::create([
+                $jobApplication = JobApplication::create([
                 'job_id' => $request->job_id,
-                'itian_id' => $itianProfile->itian_profile_id,
-                'cv' => $storedPath,
+                'itian_id' => $itianProfile->id, // ✅ تم التعديل هنا
                 'cover_letter' => $request->cover_letter,
-                'application_date' => now(),
-                'status' => 'pending'
+                'cv' => $storedPath,
             ]);
+
+            // إرسال إشعار لصاحب الوظيفة عبر Supabase
+            $job = Job::find($request->job_id);
+            $employerUserId = $job?->employer?->user_id;
+
+            if ($employerUserId) {
+                try {
+                    Http::withHeaders([
+                        'Authorization' => 'Bearer ' . env('SUPABASE_ANON_KEY'),
+                        'apikey' => env('SUPABASE_ANON_KEY'),
+                        'Content-Type' => 'application/json',
+                        'X-Client-Info' => 'supabase-js/2.0.0',
+                    ])
+                    ->post('https://obrhuhasrppixjwkznri.supabase.co/rest/v1/notifications?select=*', [
+                        'user_id' => $employerUserId,
+                        'title' => 'New Job Application',
+                        'message' => 'Someone applied for your job: ' . $job->title,
+                        'notifiable_type' => 'App\\Models\\User',
+                        'notifiable_id' => $employerUserId,
+                        'type' => 'application',
+                        'seen' => false,
+                        'job_id' => $job->id,
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Employer notification failed: ' . $e->getMessage());
+                }
+            }
 
             return response()->json([
                 'success' => true,
@@ -111,10 +137,12 @@ class JobApplicationController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Server error occurred.',
-                'error' => $e->getMessage() // في البيئة الانتاجية، أزل هذا السطر
+                'error' => $e->getMessage() // في الإنتاج احذفي ده
             ], 500);
         }
     }
+
+
     // get all employer's applications for all jobs
     public function getEmployerAllJobApplications()
     {
