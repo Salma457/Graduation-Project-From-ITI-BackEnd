@@ -22,6 +22,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PublicJobController;
 use App\Http\Controllers\RagController;
+use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\TestimonialController;
 // ------------------- Public Routes -------------------
 Route::post('register', [AuthController::class, 'register']);
@@ -33,6 +34,7 @@ Route::get('posts/{post}/reactions/details', [PostReactionController::class, 'ge
 Route::post('forgot-password', [PasswordResetController::class, 'sendResetLinkEmail']);
 Route::post('reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.reset');
 Route::get('public-profile/{username}', [ItianProfileController::class, 'showPublic']);
+Route::get('email/verify/{id}', [EmailVerificationController::class, 'verify'])->name('verification.verify')->middleware('signed');
 Route::get('public/jobs/{id}', [PublicJobController::class, 'show']);
 Route::apiResource('posts', PostController::class);
 
@@ -145,6 +147,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('updateMessage', [CustomChatController::class, 'updateMessage']);
 
     });
+        Route::get('user', [UserManagementController::class, 'getUserData']);
 
     // Admin Routes
     Route::middleware('admin')->group(function () {
@@ -174,9 +177,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Payments
     Route::post('/create-checkout-session', [PaymentController::class, 'createCheckoutSession']);
     Route::get('/has-unused-payment', [PaymentController::class, 'hasUnusedPayment']);
-    Route::post('/stripe/webhook', [PaymentController::class, 'handleStripeWebhook']);
 
-    Route::get('/testimonials', [TestimonialController::class, 'index']);
     Route::post('/testimonials', [TestimonialController::class, 'store']);
 
 
@@ -189,3 +190,5 @@ Route::prefix('rag')->group(function () {
         Route::get('/search', [RagController::class, 'search']);
         Route::get('/ask', [RagController::class, 'ask']);
 });
+    Route::get('/testimonials', [TestimonialController::class, 'index']);
+    Route::post('/stripe/webhook', [PaymentController::class, 'handleStripeWebhook']);
