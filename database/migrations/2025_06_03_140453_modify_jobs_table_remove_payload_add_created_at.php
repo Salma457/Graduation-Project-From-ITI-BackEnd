@@ -9,12 +9,12 @@ return new class extends Migration
     public function up()
     {
         Schema::table('jobs', function (Blueprint $table) {
-            // Remove the payload column
-            $table->dropColumn('payload');
-            $table->dropColumn('reserved_at');
-            $table->dropColumn('queue');
-            $table->dropColumn('updated_at');
-            $table->timestamps();
+            // These columns were already removed in earlier migration
+            // $table->dropColumn('payload');
+            // $table->dropColumn('reserved_at');
+            // $table->dropColumn('queue');
+            // $table->dropColumn('updated_at');
+            // timestamps already added in previous migration
         });
     }
 

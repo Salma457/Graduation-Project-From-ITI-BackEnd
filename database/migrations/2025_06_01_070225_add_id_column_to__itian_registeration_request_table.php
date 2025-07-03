@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('itian_registeration_request', function (Blueprint $table) {
+        Schema::table('itian_registration_requests', function (Blueprint $table) {
             //
-            $table->id();
+            // This migration is redundant since we already have request_id as primary key
+            // The next migration will rename request_id to id
+            // $table->id();
         });
     }
 
@@ -22,9 +24,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('itian_registeration_request', function (Blueprint $table) {
+        Schema::table('itian_registration_requests', function (Blueprint $table) {
             //
-            $table->dropColumn('id');
+            // This migration is redundant since we already have request_id as primary key
+            // $table->dropColumn('id');
         });
     }
 };

@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('posts', function (Blueprint $table) {
-                    $table->string('image')->nullable();
+                    // image column already added in previous migration
+                    // $table->string('image')->nullable();
 
         });
     }

@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::table('itian_registration_requests', function (Blueprint $table) {
             //
-            $table->boolean('is_verified')->default(false);
+            // is_verified column already added in previous migration
+            // $table->boolean('is_verified')->default(false);
 
         });
     }
