@@ -177,13 +177,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // Payments
     Route::post('/create-checkout-session', [PaymentController::class, 'createCheckoutSession']);
     Route::get('/has-unused-payment', [PaymentController::class, 'hasUnusedPayment']);
-    Route::post('/stripe/webhook', [PaymentController::class, 'handleStripeWebhook']);
+   
 
     Route::post('/testimonials', [TestimonialController::class, 'store']);
 
 
 
 });
+ Route::post('/stripe/webhook', [PaymentController::class, 'handleStripeWebhook']);
 // RAG
 Route::prefix('rag')->group(function () {
         Route::get('/embed/posts', [RagController::class, 'embedPosts']);
