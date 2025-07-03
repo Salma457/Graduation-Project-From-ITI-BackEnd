@@ -20,6 +20,7 @@ class UserManagementController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
+                'is_active' => $user->is_active,
                 'profile_picture' => null,
             ];
 
@@ -129,8 +130,14 @@ class UserManagementController extends Controller
         return response()->json(['message' => 'User deleted successfully']);
     }
 
-    public function getUserData(Request $request){
-        $user = Auth::user();
-        return response()->json($user);
-    }
+   public function getUserData(Request $request)
+{
+    $user = Auth::user()->load([
+        'itianProfile',
+        'employerProfile'
+    ]);
+
+    return response()->json($user);
+}
+
 }

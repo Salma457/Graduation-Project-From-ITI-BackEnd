@@ -147,6 +147,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('updateMessage', [CustomChatController::class, 'updateMessage']);
 
     });
+        Route::get('user', [UserManagementController::class, 'getUserData']);
 
     // Admin Routes
     Route::middleware('admin')->group(function () {
@@ -155,7 +156,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('users/{id}/approve-employer', [UserManagementController::class, 'approveEmployer']);
         Route::post('users/{id}/reject-employer', [UserManagementController::class, 'rejectEmployer']);
         Route::delete('users/{id}', [UserManagementController::class, 'deleteUser']);
-        Route::get('user', [UserManagementController::class, 'getUserData']);
 
         Route::put('itian-registration-requests/{id}/review', [ItianRegistrationRequestController::class, 'review']);
         Route::get('itian-registration-requests/{id}', [ItianRegistrationRequestController::class, 'show']);
@@ -163,7 +163,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/job-pricing', [AdminController::class, 'showPricing']);
         Route::post('/set-job-price', [AdminController::class, 'updatePricing']);
         Route::get('/job-price', [AdminController::class, 'getLatestPrice']);
-       
+
      Route::get('/admin/employers', [AdminController::class, 'listEmployers']);
      Route::post('/admin/send-round-ended-email', [AdminController::class, 'sendRoundEndedEmail']);
 
@@ -177,14 +177,15 @@ Route::middleware('auth:sanctum')->group(function () {
     // Payments
     Route::post('/create-checkout-session', [PaymentController::class, 'createCheckoutSession']);
     Route::get('/has-unused-payment', [PaymentController::class, 'hasUnusedPayment']);
-   
 
     Route::post('/testimonials', [TestimonialController::class, 'store']);
 
 
 
 });
- Route::post('/stripe/webhook', [PaymentController::class, 'handleStripeWebhook']);
+
+    Route::get('/testimonials', [TestimonialController::class, 'index']);
+    Route::post('/stripe/webhook', [PaymentController::class, 'handleStripeWebhook']);
 // RAG
 Route::prefix('rag')->group(function () {
         Route::get('/embed/posts', [RagController::class, 'embedPosts']);
@@ -192,4 +193,3 @@ Route::prefix('rag')->group(function () {
         Route::get('/search', [RagController::class, 'search']);
         Route::get('/ask', [RagController::class, 'ask']);
 });
-    Route::get('/testimonials', [TestimonialController::class, 'index']);
