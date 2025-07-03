@@ -16,7 +16,7 @@ return new class extends Migration
         $table->string('tags')->nullable();
         $table->enum('visibility', ['public', 'private'])->default('public');
         $table->string('category')->nullable();
-        $table->integer('likes_count')->default(0);
+        // likes_count already added in previous migration
         });
     }
 
