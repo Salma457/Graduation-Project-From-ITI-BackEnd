@@ -22,36 +22,36 @@ use Illuminate\Support\Facades\Http;
 class JobApplicationController extends Controller
 {
 
-public function getMyApplications()
-{
-    try {
-        $itianProfile = ItianProfile::where('user_id', Auth::id())->first();
+    public function getMyApplications()
+    {
+        try {
+            $itianProfile = ItianProfile::where('user_id', Auth::id())->first();
 
-        if (!$itianProfile) {
+            if (!$itianProfile) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ITIAN profile not found.'
+                ], 404);
+            }
+
+            $applications = JobApplication::with(['job', 'job.employer']) // <<< أهم حاجة هنا
+                ->where('itian_id', $itianProfile->itian_profile_id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'applications' => $applications
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Fetching my applications failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'ITIAN profile not found.'
-            ], 404);
+                'message' => 'Something went wrong.',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $applications = JobApplication::with(['job', 'job.employer']) // <<< أهم حاجة هنا
-            ->where('itian_id', $itianProfile->itian_profile_id)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'applications' => $applications
-        ]);
-    } catch (\Exception $e) {
-        \Log::error('Fetching my applications failed: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'Something went wrong.',
-            'error' => $e->getMessage()
-        ], 500);
     }
-}
 
     public function store(Request $request)
     {
@@ -124,7 +124,10 @@ public function getMyApplications()
                         'created_at' => now()
                     ]
                 ]);
-
+                \Log::info('Supabase response', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
                 } catch (\Exception $e) {
                     \Log::error('Employer notification failed: ' . $e->getMessage());
                 }
@@ -229,7 +232,7 @@ public function getMyApplications()
     }
 
 
-   public function show($id)
+    public function show($id)
     {
         try {
             \Log::info('Trying to fetch application ID: ' . $id);
@@ -411,25 +414,24 @@ public function getMyApplications()
             ], 500);
         }
     }
-public function getJobApplications($jobId)
-{
-    try {
-        $applications = JobApplication::with('itian.user')
-            ->where('job_id', $jobId)
-            ->get();
+    public function getJobApplications($jobId)
+    {
+        try {
+            $applications = JobApplication::with('itian.user')
+                ->where('job_id', $jobId)
+                ->get();
 
-        return response()->json($applications);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Something went wrong.',
-            'error' => $e->getMessage()
-        ], 500);
+            return response()->json($applications);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
-}
 
 
 
 }
-
 
