@@ -81,9 +81,11 @@ class RagEmbedderService
                     'post_created_at' => $post->created_at,
                     'post_updated_at' => $post->updated_at,
                 ];
+                Log::info("Trying to insert post", ['post_id' => $post->id, 'data' => $data]);
                 $this->storeInSupabase('post', $post->id, $data);
+                Log::info("Inserted post successfully", ['post_id' => $post->id]);
             } catch (\Throwable $e) {
-                Log::error("Post failed (ID: {$post->id})", ['error' => $e->getMessage()]);
+                Log::error("Post failed (ID: {$post->id})", ['error' => $e->getMessage(), 'data' => $data]);
             }
         }
     }
@@ -119,6 +121,32 @@ class RagEmbedderService
 
     public function searchInSupabase(string $query, int $limit = 1000)
     {
+        // كلمات مفتاحية للأسئلة العامة عن الوظائف
+        $generalJobKeywords = [
+            'وظائف', 'الوظائف', 'الوظائف المتاحة', 'أحدث الوظائف', 'فرص عمل', 'jobs', 'available jobs', 'latest jobs', 'recent jobs', 'open jobs', 'jobs in your system', 'job opportunities'
+        ];
+        $isGeneralJobQuery = false;
+        foreach ($generalJobKeywords as $kw) {
+            if (stripos($query, $kw) !== false) {
+                $isGeneralJobQuery = true;
+                break;
+            }
+        }
+        // دعم البحث الذكي عن نوع الوظيفة (on-site/remote)
+        $jobType = null;
+        $queryLower = mb_strtolower($query);
+        if (strpos($queryLower, 'on-site') !== false || strpos($queryLower, 'onsite') !== false || strpos($queryLower, 'حضورى') !== false || strpos($queryLower, 'حضوري') !== false || strpos($queryLower, 'في مقر الشركة') !== false) {
+            $jobType = 'on-site';
+        } elseif (strpos($queryLower, 'remote') !== false || strpos($queryLower, 'عن بعد') !== false) {
+            $jobType = 'remote';
+        }
+        if ($jobType) {
+            $sql = "SELECT * FROM itian_rag_knowledge WHERE job_type ILIKE ? ORDER BY posted_date DESC NULLS LAST, post_created_at DESC NULLS LAST LIMIT {$limit};";
+            $results = DB::connection('supabase')->select($sql, ['%' . $jobType . '%']);
+            if (!empty($results)) {
+                return $results;
+            }
+        }
         // Full-text search on title/content/job_title/description/post_title/post_content
         $like = '%' . $query . '%';
         $sql = "
@@ -149,6 +177,11 @@ class RagEmbedderService
                 $sql2 = implode(' UNION ', $unionSql) . " ORDER BY posted_date DESC NULLS LAST, post_created_at DESC NULLS LAST LIMIT {$limit}";
                 $results = DB::connection('supabase')->select($sql2, $params);
             }
+        }
+        // إذا كان السؤال عام عن الوظائف أو لم توجد نتائج، اعرض آخر 10 وظائف
+        if ($isGeneralJobQuery || empty($results)) {
+            $sqlJobs = "SELECT * FROM itian_rag_knowledge WHERE job_title IS NOT NULL ORDER BY posted_date DESC NULLS LAST, post_created_at DESC NULLS LAST LIMIT 10;";
+            $results = DB::connection('supabase')->select($sqlJobs);
         }
         return $results;
     }
