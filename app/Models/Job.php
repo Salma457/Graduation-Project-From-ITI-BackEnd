@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
+use \App\Models\JobApplication;
 class Job extends Model
 {
+        use SoftDeletes;
+
     // Job Type Constants
     public const TYPE_FULL_TIME = 'Full-time';
     public const TYPE_PART_TIME = 'Part-time';
@@ -19,11 +22,12 @@ class Job extends Model
     public const STATUS_PENDING = 'Pending';
 
     // Location Constants
-    public const LOCATION_ON_SITE = 'on-site';
+    public const LOCATION_ON_SITE = 'On-site';
     public const LOCATION_REMOTE = 'Remote';
     public const LOCATION_HYBRID = 'Hybrid';
 
-    protected $with = ['employer'];
+    protected $with = ['employer', 'employer.employerProfile'];
+
 
     protected $fillable = [
         'job_title',
@@ -60,6 +64,11 @@ class Job extends Model
     public function statusChanger(): BelongsTo
     {
         return $this->belongsTo(User::class, 'status_changed_by');
+    }
+
+    public function applications()
+    {
+        return $this->hasMany(JobApplication::class);
     }
 
     public static function getJobTypes(): array

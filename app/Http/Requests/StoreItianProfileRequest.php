@@ -16,12 +16,11 @@ class StoreItianProfileRequest extends FormRequest
         $rules = [
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
-           'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'bio' => 'nullable|string',
             'iti_track' => 'required|string|max:100',
             'graduation_year' => 'required|integer',
-            'cv' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'cv' => 'nullable|mimes:pdf,doc,docx|max:2048',
             'portfolio_url' => 'nullable|url|max:500',
             'linkedin_profile_url' => 'nullable|url|max:500',
             'github_profile_url' => 'nullable|url|max:500',
@@ -30,18 +29,9 @@ class StoreItianProfileRequest extends FormRequest
             'current_job_title' => 'nullable|string|max:255',
             'current_company' => 'nullable|string|max:255',
             'preferred_job_locations' => 'nullable|string|max:500',
+            'email' => 'nullable|email|max:255', 
         ];
-    
-        if ($this->isMethod('PATCH') || $this->isMethod('PUT')) {
-            foreach ($rules as $key => &$rule) {
-                if (is_string($rule)) {
-                    
-                    $rule = str_replace('required', 'sometimes', $rule);
-                }
-            }
-        }
     
         return $rules;
     }
-    
 }

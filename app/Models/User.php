@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Mail\ResetPasswordMail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -12,6 +13,7 @@ use App\Models\EmployerProfile;
 
 class User extends Authenticatable
 {
+
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
 
@@ -26,6 +28,7 @@ class User extends Authenticatable
         'password',
         'last_login',
         'role',
+
     ];
 
     /**
@@ -65,8 +68,18 @@ class User extends Authenticatable
     }
 
     public function employerProfile()
-{
-    return $this->hasOne(EmployerProfile::class, 'user_id');
-}
+    {
+        return $this->hasOne(EmployerProfile::class, 'user_id');
+    }
+    public function sendPasswordResetNotification($token)
+    {
+        $url = url(config('app.frontend_url') . "/reset-password?token={$token}&email=" . $this->email);
+
+        \Illuminate\Support\Facades\Mail::to($this->email)->send(new ResetPasswordMail($token, $this->email));
+    }
+        public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'uuid');
+    }
 
 }
