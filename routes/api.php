@@ -69,7 +69,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('posts/{post}/reaction', [PostReactionController::class, 'removeReaction']);
     Route::get('posts/{post}/reactions', [PostReactionController::class, 'getReactions']);
 
-    // Comments
+    // Commentscheck
     Route::post('posts/{post}/comments', [CommentController::class, 'store']);
     Route::put('comments/{comment}', [CommentController::class, 'update']);
     Route::delete('comments/{comment}', [CommentController::class, 'destroy']);
